@@ -18,7 +18,13 @@ Config links: ./links. Third-party skills: ./skills.pins. Own skills: ./skills/<
 EOF
 }
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+# Follow the ~/.local/bin/agent link back to the repo.
+self="$0"
+while [ -L "$self" ]; do
+  t="$(readlink "$self")"
+  case "$t" in /*) self="$t" ;; *) self="$(dirname "$self")/$t" ;; esac
+done
+REPO="$(cd "$(dirname "$self")/.." && pwd)"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/agents/backup/$STAMP"
 # Where the skills CLI keeps its lock (src/skill-lock.ts in vercel-labs/skills).
