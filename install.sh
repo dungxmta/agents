@@ -173,20 +173,20 @@ EOF
       if [ -z "$ref" ]; then st=missing
       elif [ "$ref" = "$sha" ]; then st=ok
       else st="drift ($(echo "$ref" | cut -c1-7))"; fi
-      printf '  %-30s %-22s %s  %s\n' "$n" "$src" "$(echo "$sha" | cut -c1-7)" "$st"
+      printf '  %-26s %-24s %s  %s\n' "$n" "$src" "$(echo "$sha" | cut -c1-7)" "$st"
     done
   done <<EOF
 $(rows "$REPO/skills.pins")
 EOF
   own="$(own_skills)"
   for n in $own; do
-    printf '  %-30s %-22s %s  %s\n' "$n" "agents repo" "-------" local
+    printf '  %-26s %-24s %s  %s\n' "$n" "agents repo" "-------" local
   done
   [ -f "$LOCK" ] || return 0
   # installed by the CLI but in neither skills.pins nor skills/
   for n in $(jq -r '.skills | keys[]' "$LOCK" 2>/dev/null); do
     case " $pinned $own " in *" $n "*) continue ;; esac
-    printf '  %-30s %-22s %s  %s\n' "$n" "$(jq -r --arg n "$n" '.skills[$n].source' "$LOCK")" "-------" unpinned
+    printf '  %-26s %-24s %s  %s\n' "$n" "$(jq -r --arg n "$n" '.skills[$n].source' "$LOCK")" "-------" unpinned
   done
 }
 

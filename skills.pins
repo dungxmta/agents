@@ -12,3 +12,7 @@ skills    mattpocock/skills  d1478fcb140db0b93c0c8df17bcfd311844749d0  grilling,
 # Optional from mattpocock/skills (add to the row above to enable):
 #   wayfinder improve-codebase-architecture prototype research
 # Left out on purpose: wizard (writes scripts that handle credentials and infrastructure).
+#
+# Ponytail v5.3.3. Left out: ponytail-review (same triggers as code-review),
+# ponytail-help and ponytail-gain (describe the plugin install: hooks, auto-start).
+skills    DietrichGebert/ponytail  7801d061243d7b753bad0e0b3c057cd250b11755  ponytail,ponytail-audit,ponytail-debt
