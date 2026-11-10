@@ -1,0 +1,9 @@
+# Files linked into $HOME by `agent sync`. Each skill under skills/ is also
+# linked into ~/.agents/skills (oh-my-pi) and ~/.claude/skills (Claude Code).
+#
+# repo path                              home path (relative to ~)
+AGENTS.md                                .claude/CLAUDE.md
+AGENTS.md                                .agents/AGENTS.md
+claude/settings.json                     .claude/settings.json
+claude/plugins/claude-hud/config.json    .claude/plugins/claude-hud/config.json
+bin/agent                                .local/bin/agent

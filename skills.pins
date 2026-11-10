@@ -1,0 +1,14 @@
+# Third-party skills at exact commits. `agent sync` installs exactly this and
+# never edits the file; review upstream changes before moving a pin.
+#
+# The skills CLI (npm package "skills"), run through mise:
+#   cli     name     version
+cli       skills   1.7.6
+#
+# One row per source: full 40-character commit, skill names comma-separated.
+#   skills  source             commit                                    names
+skills    mattpocock/skills  d1478fcb140db0b93c0c8df17bcfd311844749d0  grilling,grill-me,grill-with-docs,domain-modeling,to-spec,to-tickets,implement,tdd,codebase-design,code-review,diagnosing-bugs,pr,handoff,setup-matt-pocock-skills
+#
+# Optional from mattpocock/skills (add to the row above to enable):
+#   wayfinder improve-codebase-architecture prototype research to-questionnaire wait-what teach
+# Left out on purpose: wizard (writes scripts that handle credentials and infrastructure).
