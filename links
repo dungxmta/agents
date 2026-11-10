@@ -6,4 +6,4 @@ AGENTS.md                                .claude/CLAUDE.md
 AGENTS.md                                .agents/AGENTS.md
 claude/settings.json                     .claude/settings.json
 claude/plugins/claude-hud/config.json    .claude/plugins/claude-hud/config.json
-bin/agent                                .local/bin/agent
+agent.zsh                                .config/zsh/agent.zsh
