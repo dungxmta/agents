@@ -44,6 +44,12 @@ confirm() {
   case "$a" in y | Y | yes) return 0 ;; *) return 1 ;; esac
 }
 rows() { grep -v '^[[:space:]]*\(#\|$\)' "$1"; }
+# A pulled commit must not reach outside the repo or $HOME, or smuggle in globs.
+safe_rel() {
+  case "$1" in "" | /* | ..* | */..* | *[!A-Za-z0-9._/-]*) return 1 ;; esac
+}
+valid_source() { printf '%s' "$1" | grep -Eq '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$'; }
+valid_names() { printf '%s' "$1" | grep -Eq '^[a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*$'; }
 
 # --- links -----------------------------------------------------------------------
 
@@ -81,6 +87,7 @@ sync_links() {
   say "==> links"
   while read -r src dst; do
     [ -n "$src" ] || continue
+    safe_rel "$src" && safe_rel "$dst" || { fail "links: unsafe path in '$src $dst'"; continue; }
     [ -e "$REPO/$src" ] || { fail "links: $src is not in the repo"; continue; }
     st="$(link_state "$src" "$dst")"
     case "$st" in
@@ -108,7 +115,8 @@ EOF
 skills_cli() {
   local v
   v="$(rows "$REPO/skills.pins" | awk '$1 == "cli" && $2 == "skills" { print $3 }')"
-  [ -n "$v" ] || { fail "skills.pins: no 'cli skills <version>' row"; return 1; }
+  printf '%s' "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' ||
+    { fail "skills.pins: need 'cli skills <x.y.z>' (exact version)"; return 1; }
   has mise || { fail "mise is needed to run the skills CLI"; return 1; }
   DISABLE_TELEMETRY=1 mise exec "npm:skills@$v" -- skills "$@"
 }
@@ -125,7 +133,9 @@ sync_skills() {
   has jq || { fail "jq is needed to read the skills lock"; return; }
   while read -r kind src sha names; do
     [ "$kind" = skills ] || continue
+    valid_source "$src" || { fail "skills.pins: source must be owner/repo: $src"; continue; }
     valid_sha "$sha" || { fail "skills.pins: $src: commit must be a full 40-character id"; continue; }
+    valid_names "$names" || { fail "skills.pins: $src: names must be a-z0-9- separated by commas"; continue; }
     todo=""
     for n in $(echo "$names" | tr ',' ' '); do
       [ "$(locked_ref "$n")" = "$sha" ] || todo="$todo -s $n"
