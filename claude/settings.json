@@ -1,4 +1,8 @@
 {
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1"
+  },
   "permissions": {
     "deny": [
       "Read(~/.ssh/**)",
@@ -16,12 +20,11 @@
     ],
     "disableBypassPermissionsMode": "disable"
   },
-  "env": {
-    "DISABLE_TELEMETRY": "1",
-    "DISABLE_ERROR_REPORTING": "1"
+  "statusLine": {
+    "type": "command",
+    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/claude-hud/statusline.mjs\""
   },
   "enabledPlugins": {
-    "postman@claude-plugins-official": true,
     "claude-hud@claude-hud": true
   },
   "extraKnownMarketplaces": {
@@ -32,9 +35,5 @@
       }
     }
   },
-  "theme": "dark",
-  "statusLine": {
-    "type": "command",
-    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/claude-hud/statusline.mjs\""
-  }
+  "theme": "dark"
 }
