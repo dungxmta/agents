@@ -5,16 +5,10 @@
 # Repo root: this file's real location (it is reached through a symlink).
 typeset -g _AGENT_REPO=${${(%):-%x}:A:h}
 
-# Local session history of Claude Code and omp (cleared by `agent clear history`).
-# Kept: credentials, settings, skills, plugins, memory (~/.claude/projects/*/memory), plans.
-_agent_history_paths() {
-  setopt localoptions extendedglob
-  local c=${CLAUDE_CONFIG_DIR:-$HOME/.claude} o=${PI_CODING_AGENT_DIR:-$HOME/.omp/agent}
-  reply=(
-    $c/history.jsonl(N) $c/{file-history,paste-cache,shell-snapshots,session-env}(N/)
-    $c/projects/*/^memory(N)
-    $o/history.db*(N) $o/{sessions,blobs}(N/)
-  )
+# sha256 of $1, as printed by whichever tool this OS has
+_agent_sha256() {
+  if (( $+commands[sha256sum] )); then print -rn -- "$1" | sha256sum
+  else print -rn -- "$1" | shasum -a 256; fi | cut -d' ' -f1
 }
 
 agent() {
@@ -46,18 +40,21 @@ agent() {
       ${EDITOR:-vi} "$repo/${1:-skills.pins}"
       ;;
     clear)
-      [[ $1 == history ]] || { print -u2 "usage: agent clear history [-y]"; return 2; }
-      _agent_history_paths
-      (( $#reply )) || { print "agent: no agent history to clear"; return 0; }
-      local -a proj=(${(M)reply:#*/projects/*})
-      du -sh -- ${reply:#*/projects/*} | sed "s|$HOME|~|"
-      (( $#proj )) && print "$(du -shc -- $proj | tail -1 | cut -f1)\t$#proj transcripts in ~/.claude/projects (memory kept)"
-      print "total: $(du -shc -- $reply | tail -1 | cut -f1) in $#reply paths"
-      if [[ $2 != -y ]]; then
-        read -q "?Delete these? [y/N] " || { print; return 1; }
-        print
+      [[ $1 == history && $# == 1 ]] || { print -u2 "usage: agent clear history"; return 2; }
+      # Run only the pushed clear-history.zsh: read it once, compare its hash with the
+      # upstream copy, then execute exactly the bytes that were checked (zsh -f: no rc files).
+      local f=clear-history.zsh code want h
+      code=$(cat -- "$repo/$f" && print -n .) || return 1
+      want=$(git -C "$repo" show "@{u}:$f" 2>/dev/null && print -n .) ||
+        { print -u2 "agent: $f is not on the upstream branch (push it first)"; return 1; }
+      h=$(_agent_sha256 "$code")
+      if [[ $h != $(_agent_sha256 "$want") ]]; then
+        print -u2 "agent: $f differs from the pushed copy (sha256 $h); not running it"
+        print -u2 "       review: git -C ${repo/#$HOME/~} diff @{u} -- $f"
+        return 1
       fi
-      command rm -rf -- $reply && print "agent: history cleared"
+      print "agent: $f matches $(git -C "$repo" rev-parse --abbrev-ref @{u}) (sha256 ${h[1,16]})"
+      zsh -fc "${code%.}" clear-history
       ;;
     push)   git -C "$repo" push "$@" ;;
     repo)   cd "$repo" ;;
@@ -69,8 +66,8 @@ usage: agent <command>
   diff         uncommitted changes (linked config edited by agents shows up here)
   update       pull the repo, show what changed, sync after a yes
   edit [FILE]  edit a repo file (default: skills.pins)
-  clear history [-y]  delete Claude Code and omp prompt history and sessions
-               (keeps credentials, settings, skills, memory); asks first
+  clear history  delete Claude Code and omp prompt history and sessions, asking
+               before each delete; runs only if clear-history.zsh matches the pushed copy
   push         push already-committed changes (never stages or commits)
   repo         cd into the agents repo
 EOF
