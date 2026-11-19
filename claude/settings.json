@@ -4,6 +4,9 @@
     "DISABLE_ERROR_REPORTING": "1"
   },
   "permissions": {
+    "allow": [
+      "Bash(git commit:*)"
+    ],
     "deny": [
       "Read(~/.ssh/**)",
       "Read(~/.gnupg/**)",
