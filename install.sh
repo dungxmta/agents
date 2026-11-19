@@ -60,7 +60,7 @@ own_skills() {
   done
 }
 
-# "repo-path home-path" per line: ./links plus two links per own skill.
+# "repo-path home-path [hard]" per line: ./links plus two links per own skill.
 links() {
   rows "$REPO/links"
   local s
@@ -71,9 +71,17 @@ links() {
 }
 
 # ok | missing | replaced (a real file or dir) | other-link
+# | split (hard mode: a separate file where the hard link was)
 link_state() {
   local src="$REPO/$1" dst="$HOME/$2"
-  if [ -L "$dst" ]; then
+  if [ "${3:-}" = hard ]; then
+    if [ -L "$dst" ]; then echo other-link
+    elif [ "$dst" -ef "$src" ]; then echo ok
+    elif [ -f "$dst" ]; then echo split
+    elif [ -e "$dst" ]; then echo replaced
+    else echo missing
+    fi
+  elif [ -L "$dst" ]; then
     [ "$(readlink "$dst")" = "$src" ] && echo ok || echo other-link
   elif [ -e "$dst" ]; then
     echo replaced
@@ -83,16 +91,34 @@ link_state() {
 }
 
 sync_links() {
-  local src dst st
+  local src dst mode st
   say "==> links"
-  while read -r src dst; do
+  while read -r src dst mode; do
     [ -n "$src" ] || continue
     safe_rel "$src" && safe_rel "$dst" || { fail "links: unsafe path in '$src $dst'"; continue; }
+    case "$mode" in "" | hard) ;; *) fail "links: unknown mode '$mode' for $src"; continue ;; esac
     [ -e "$REPO/$src" ] || { fail "links: $src is not in the repo"; continue; }
-    st="$(link_state "$src" "$dst")"
+    st="$(link_state "$src" "$dst" "$mode")"
     case "$st" in
       ok) continue ;;
       missing) ;;
+      split)
+        # Same content: just link again. Otherwise one side was edited.
+        if ! cmp -s "$REPO/$src" "$HOME/$dst"; then
+          say "~/$dst is no longer linked to $src (diff repo -> ~):"
+          diff -u "$REPO/$src" "$HOME/$dst" | sed 's/^/  /'
+          # -y means "repo wins", so this question is never answered by -y
+          if [ "$ASSUME_YES" != true ] && confirm "Keep the ~ version (copy it into the repo)?"; then
+            cp "$HOME/$dst" "$REPO/$src" || { fail "copy ~/$dst into the repo"; continue; }
+            say "  copied ~/$dst into $src (check git diff)"
+          else
+            confirm "Back up ~/$dst and link it to the repo version?" || { say "  kept ~/$dst"; continue; }
+            mkdir -p "$(dirname "$BACKUP_DIR/$dst")" && mv "$HOME/$dst" "$BACKUP_DIR/$dst" ||
+              { fail "backup of ~/$dst"; continue; }
+            say "  backup: $BACKUP_DIR/$dst"
+          fi
+        fi
+        ;;
       *)
         say "~/$dst already exists ($st)"
         [ -f "$HOME/$dst" ] && [ ! -L "$HOME/$dst" ] && diff -u "$HOME/$dst" "$REPO/$src" | sed 's/^/  /'
@@ -102,8 +128,14 @@ sync_links() {
         say "  backup: $BACKUP_DIR/$dst"
         ;;
     esac
-    mkdir -p "$(dirname "$HOME/$dst")" && ln -s "$REPO/$src" "$HOME/$dst" &&
-      say "linked ~/$dst -> $src" || fail "link ~/$dst"
+    mkdir -p "$(dirname "$HOME/$dst")" || { fail "link ~/$dst"; continue; }
+    if [ "$mode" = hard ]; then
+      # ln -f replaces a split copy; fails across filesystems (hard links can't)
+      ln -f "$REPO/$src" "$HOME/$dst" && say "hard-linked ~/$dst = $src" ||
+        fail "hard link ~/$dst (repo and ~ must be on the same filesystem)"
+    else
+      ln -s "$REPO/$src" "$HOME/$dst" && say "linked ~/$dst -> $src" || fail "link ~/$dst"
+    fi
   done <<EOF
 $(links)
 EOF
@@ -155,10 +187,10 @@ EOF
 # --- status ----------------------------------------------------------------------
 
 status() {
-  local src dst kind sha names n ref st pinned="" own
+  local src dst mode kind sha names n ref st pinned="" own
   say "LINKS"
-  while read -r src dst; do
-    [ -n "$src" ] && printf '  %-44s %-10s %s\n' "~/$dst" "$(link_state "$src" "$dst")" "$src"
+  while read -r src dst mode; do
+    [ -n "$src" ] && printf '  %-44s %-10s %s%s\n' "~/$dst" "$(link_state "$src" "$dst" "$mode")" "$src" "${mode:+ ($mode)}"
   done <<EOF
 $(links)
 EOF

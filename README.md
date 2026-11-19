@@ -43,6 +43,13 @@ before replacing an existing file and backs it up to
 
 `links` lists every link; `skills.pins` pins third-party skills to exact commits.
 
+`claude/plugins/claude-hud/config.json` is a hard link, not a symlink: claude-hud
+won't read its config through a symlink. `hud set` and a `git pull` that changes
+the file each replace one side, so the two copies split. `agent status` then
+shows `split`, and `agent sync` shows the diff, asks whether to keep the `~`
+version (copied into the repo) or the repo's (the `~` one is backed up), and
+links them again. The repo and `~` must be on the same disk.
+
 ## Adding a skill
 
 Read the skill upstream first: skills are instructions an agent follows with

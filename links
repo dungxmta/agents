@@ -1,9 +1,15 @@
 # Files linked into $HOME by `agent sync`. Each skill under skills/ is also
 # linked into ~/.agents/skills (oh-my-pi) and ~/.claude/skills (Claude Code).
 #
-# repo path                              home path (relative to ~)
+# Optional third column `hard`: a hard link instead of a symlink, for a tool that
+# refuses to read through symlinks. Writing via temp file + rename (hud set) or a
+# git pull that changes the file splits it in two; `agent status` shows `split`
+# and `agent sync` asks which side to keep, then links again.
+#
+# repo path                              home path (relative to ~)                  mode
 AGENTS.md                                .claude/CLAUDE.md
 AGENTS.md                                .agents/AGENTS.md
 claude/settings.json                     .claude/settings.json
-claude/plugins/claude-hud/config.json    .claude/plugins/claude-hud/config.json
+# claude-hud opens its config with O_NOFOLLOW
+claude/plugins/claude-hud/config.json    .claude/plugins/claude-hud/config.json     hard
 agent.zsh                                .config/zsh/agent.zsh
