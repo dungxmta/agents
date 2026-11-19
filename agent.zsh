@@ -5,6 +5,12 @@
 # Repo root: this file's real location (it is reached through a symlink).
 typeset -g _AGENT_REPO=${${(%):-%x}:A:h}
 
+# completion: completions/_agent in the repo
+typeset -gU fpath
+fpath=("$_AGENT_REPO/completions" $fpath)
+autoload -Uz _agent
+(( $+functions[compdef] )) && compdef _agent agent
+
 # sha256 of $1, as printed by whichever tool this OS has
 _agent_sha256() {
   if (( $+commands[sha256sum] )); then print -rn -- "$1" | sha256sum

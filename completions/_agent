@@ -1,0 +1,39 @@
+#compdef agent
+# Completion for `agent` (../agent.zsh). Commands and words are listed here (keep them in
+# sync with `agent help`); `agent edit` files are a glob of the repo, so Tab runs no command.
+
+_agent() {
+  local curcontext=$curcontext state line expl ret=1
+  local -a cmds files
+  cmds=(
+    'sync:link config into $HOME, install pinned skills'
+    'status:git status + links and skills'
+    'diff:uncommitted changes in the repo'
+    'update:pull, show what changed, sync after a yes'
+    'edit:edit a repo file (default: skills.pins)'
+    'clear:clear history: Claude Code and omp prompt history (asks per delete)'
+    'push:push already-committed changes'
+    'repo:cd into the agents repo'
+    'help:show usage'
+  )
+  _arguments -C '1: :->cmd' '*:: :->args' && ret=0
+  case $state in
+    cmd) _describe -t commands 'agent command' cmds && ret=0 ;;
+    args)
+      case $words[1] in
+        sync) _values -w 'sync' 'links[only the config links]' 'skills[only the pinned skills]' '-y[replace existing files]' && ret=0 ;;
+        edit)
+          if (( CURRENT == 2 )) && [[ -n $_AGENT_REPO ]]; then
+            files=($_AGENT_REPO/**/*(.N))
+            files=(${files#$_AGENT_REPO/})
+            _wanted files expl 'repo file' compadd -a files && ret=0
+          fi
+          ;;
+        clear) (( CURRENT == 2 )) && _values 'what' 'history[prompt history and sessions]' && ret=0 ;;
+      esac
+      ;;
+  esac
+  return ret
+}
+
+_agent "$@"
