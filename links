@@ -9,7 +9,10 @@
 # repo path                              home path (relative to ~)                  mode
 AGENTS.md                                .claude/CLAUDE.md
 AGENTS.md                                .agents/AGENTS.md
+AGENTS.md                                .claude-home/CLAUDE.md
 claude/settings.json                     .claude/settings.json
+claude/settings.json                     .claude-home/settings.json
 # claude-hud opens its config with O_NOFOLLOW
 claude/plugins/claude-hud/config.json    .claude/plugins/claude-hud/config.json     hard
+claude/plugins/claude-hud/config.json    .claude-home/plugins/claude-hud/config.json hard
 agent.zsh                                .config/zsh/agent.zsh

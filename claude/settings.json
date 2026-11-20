@@ -16,6 +16,7 @@
       "Read(~/.netrc)",
       "Read(~/.config/gh/hosts.yml)",
       "Read(~/.claude.json)",
+      "Read(~/.claude-home/.claude.json)",
       "Read(**/.env)",
       "Read(**/.env.*)",
       "Read(**/*.pem)",

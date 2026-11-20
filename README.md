@@ -36,8 +36,8 @@ before replacing an existing file and backs it up to
 
 | Path | Linked to |
 |---|---|
-| `AGENTS.md` | `~/.claude/CLAUDE.md`, `~/.agents/AGENTS.md` |
-| `claude/` | `~/.claude/` |
+| `AGENTS.md` | `~/.claude/CLAUDE.md`, `~/.claude-home/CLAUDE.md`, `~/.agents/AGENTS.md` |
+| `claude/` | `~/.claude/`, `~/.claude-home/` |
 | `skills/<name>/` | `~/.agents/skills/`, `~/.claude/skills/` |
 | `agent.zsh` | `~/.config/zsh/agent.zsh` |
 
@@ -49,6 +49,18 @@ the file each replace one side, so the two copies split. `agent status` then
 shows `split`, and `agent sync` shows the diff, asks whether to keep the `~`
 version (copied into the repo) or the repo's (the `~` one is backed up), and
 links them again. The repo and `~` must be on the same disk.
+
+## Claude profiles
+
+`claude` uses `~/.claude` (work account). `claude-home` (in `agent.zsh`) runs it
+with `CLAUDE_CONFIG_DIR=~/.claude-home` (personal account): its own login,
+history, sessions, memory and plugins. `CLAUDE.md`, `settings.json` and the HUD
+config are linked into both; `~/.claude-home/skills` links to `~/.claude/skills`
+(made by `claude-home` on first run).
+
+First run: `agent sync`, then `claude-home` and `/login` with the personal
+account; install the HUD plugin there (`/plugin install claude-hud@claude-hud`,
+then `/hud`). Clear its history with `CLAUDE_CONFIG_DIR=~/.claude-home agent clear history`.
 
 ## Adding a skill
 

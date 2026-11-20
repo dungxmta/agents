@@ -81,3 +81,12 @@ EOF
     *) print -u2 "agent: unknown command: $cmd (agent help)"; return 2 ;;
   esac
 }
+
+# claude-home: Claude Code on the personal account. Own login, history, sessions and
+# plugins in ~/.claude-home; CLAUDE.md and settings are linked by `agent sync`, and
+# skills are shared through one link to ~/.claude/skills.
+claude-home() {
+  local d=$HOME/.claude-home
+  [[ -e $d/skills || -L $d/skills ]] || { mkdir -p $d && ln -s ../.claude/skills $d/skills; }
+  CLAUDE_CONFIG_DIR=$d claude "$@"
+}
