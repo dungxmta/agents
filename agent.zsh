@@ -72,7 +72,7 @@ usage: agent <command>
   diff         uncommitted changes (linked config edited by agents shows up here)
   update       pull the repo, show what changed, sync after a yes
   edit [FILE]  edit a repo file (default: skills.pins)
-  clear history  delete Claude Code and omp prompt history and sessions, asking
+  clear history  delete Claude Code (both profiles) and omp prompt history and sessions, asking
                before each delete; runs only if clear-history.zsh matches the pushed copy
   push         push already-committed changes (never stages or commits)
   repo         cd into the agents repo

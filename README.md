@@ -60,7 +60,7 @@ config are linked into both; `~/.claude-home/skills` links to `~/.claude/skills`
 
 First run: `agent sync`, then `claude-home` and `/login` with the personal
 account; install the HUD plugin there (`/plugin install claude-hud@claude-hud`,
-then `/hud`). Clear its history with `CLAUDE_CONFIG_DIR=~/.claude-home agent clear history`.
+then `/hud`). `agent clear history` clears both profiles.
 
 ## Adding a skill
 
